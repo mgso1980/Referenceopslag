@@ -1,0 +1,5 @@
+{
+  "name": "Academic Source Catalog",
+  "description": "An interactive catalog to get AI-powered summaries of academic sources. Users can select a source from a predefined list and generate an overview of its theories, key points, and models using the Gemini API.",
+  "requestFramePermissions": []
+}
