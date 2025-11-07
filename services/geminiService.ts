@@ -9,7 +9,8 @@ async function sleep(ms: number) {
 }
 
 export async function generateSourceSummary(citation: string): Promise<SourceSummary> {
-  if (!process.env.API_KEY) {
+  // Perform a strict check for the API key at the very beginning.
+  if (!process.env.API_KEY || process.env.API_KEY.trim() === '') {
     throw new Error("API-nøglen er ugyldig eller mangler. Applikationens administrator skal konfigurere en gyldig nøgle.");
   }
   
@@ -117,11 +118,8 @@ Kilde: "${citation}"`;
       
   if (lastError instanceof Error) {
       const lowerCaseMessage = lastError.message.toLowerCase();
-      if (lowerCaseMessage.includes('api key not valid') || 
-          lowerCaseMessage.includes('api_key_invalid') || 
-          lowerCaseMessage.includes('requested entity was not found')) {
-          userMessage = "API-nøglen er ugyldig eller mangler. Applikationens administrator skal konfigurere en gyldig nøgle.";
-      } else if (lowerCaseMessage.includes('blocked')) {
+      // NOTE: API key errors are now handled by the initial check at the top of the function.
+      if (lowerCaseMessage.includes('blocked')) {
           userMessage = `Anmodningen blev blokeret. Årsag: ${lastError.message}`;
       } else if (lowerCaseMessage.includes('overloaded') || lowerCaseMessage.includes('unavailable') || lowerCaseMessage.includes('503')) {
           userMessage = "AI-modellen er i øjeblikket overbelastet. Vent et øjeblik, og prøv venligst igen.";
