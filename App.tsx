@@ -1,8 +1,8 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { generateSourceSummary } from './services/geminiService';
 import { INITIAL_SOURCES } from './constants';
 import { Source, SourceSummary } from './types';
-import { BookIcon, LoaderIcon, ErrorIcon, InfoIcon, KeyIcon, BrainCircuitIcon } from './components/icons';
+import { BookIcon, LoaderIcon, ErrorIcon, InfoIcon, BrainCircuitIcon } from './components/icons';
 
 const SourceListItem: React.FC<{ source: Source; onSelect: () => void; isSelected: boolean }> = ({ source, onSelect, isSelected }) => (
   <li
@@ -128,64 +128,13 @@ const WelcomeMessage: React.FC = () => (
     </div>
 );
 
-const SelectKeyView: React.FC<{ onSelect: () => void }> = ({ onSelect }) => (
-    <div className="flex flex-col items-center justify-center h-full text-center text-slate-500 dark:text-slate-400 p-8">
-        <KeyIcon className="h-16 w-16 mb-4 text-slate-400 dark:text-slate-500" />
-        <h2 className="text-xl font-semibold text-slate-800 dark:text-slate-200 mb-2">API-nøgle påkrævet</h2>
-        <p className="max-w-md mb-4">Denne applikation kræver en Google AI API-nøgle for at fungere.</p>
-        <p className="max-w-md mb-6 text-sm text-slate-400 dark:text-slate-500">Klik på knappen for at åbne en dialogboks, hvor du kan vælge eller oprette en nøgle. Processen kan kræve, at du vælger et Google Cloud-projekt.</p>
-        <button
-            onClick={onSelect}
-            className="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-sky-600 hover:bg-sky-700 transition-colors"
-        >
-            Vælg API-nøgle
-        </button>
-        <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noopener noreferrer" className="text-xs text-slate-400 dark:text-slate-500 mt-4 hover:underline">
-            Læs om priser for Gemini API
-        </a>
-    </div>
-);
-
-
 const App: React.FC = () => {
   const [sources, setSources] = useState<Source[]>(INITIAL_SOURCES);
   const [selectedSourceId, setSelectedSourceId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [isKeySelected, setIsKeySelected] = useState<boolean>(false);
-  const [isCheckingKey, setIsCheckingKey] = useState<boolean>(true);
   
   const selectedSource = useMemo(() => sources.find(s => s.id === selectedSourceId) || null, [sources, selectedSourceId]);
-
-  const checkApiKey = useCallback(async () => {
-    setIsCheckingKey(true);
-    try {
-        // @ts-ignore
-        if (window.aistudio && typeof window.aistudio.hasSelectedApiKey === 'function') {
-            // @ts-ignore
-            const hasKey = await window.aistudio.hasSelectedApiKey();
-            setIsKeySelected(hasKey);
-        } else {
-            setIsKeySelected(false);
-        }
-    } finally {
-        setIsCheckingKey(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    checkApiKey();
-  }, [checkApiKey]);
-
-  const handleSelectKey = useCallback(async () => {
-    try {
-        // @ts-ignore
-        await window.aistudio.openSelectKey();
-        setIsKeySelected(true); // Optimistically set to true to avoid race condition
-    } catch (e) {
-        console.error("Error opening select key dialog:", e);
-    }
-  }, []);
 
   const handleSourceSelect = useCallback(async (id: number) => {
     if (selectedSourceId === id || isLoading) {
@@ -214,26 +163,10 @@ const App: React.FC = () => {
     } catch (e: any) {
       const errorMessage = e.message || 'An unknown error occurred.';
       setError(errorMessage);
-      
-      if (errorMessage.toLowerCase().includes('api-nøgle') || errorMessage.toLowerCase().includes('requested entity was not found')) {
-          setIsKeySelected(false);
-      }
     } finally {
       setIsLoading(false);
     }
   }, [selectedSourceId, isLoading, sources]);
-
-  if (isCheckingKey) {
-      return <div className="flex items-center justify-center h-screen"><LoaderIcon className="h-12 w-12 animate-spin text-slate-500" /></div>;
-  }
-
-  if (!isKeySelected) {
-      return (
-        <div className="flex items-center justify-center h-screen">
-          <SelectKeyView onSelect={handleSelectKey} />
-        </div>
-      );
-  }
 
   return (
     <main className="h-screen w-screen overflow-hidden antialiased text-slate-800 dark:text-slate-200">

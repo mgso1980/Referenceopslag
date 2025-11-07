@@ -116,7 +116,7 @@ Kilde: "${citation}"`;
       if (lowerCaseMessage.includes('api key not valid') || 
           lowerCaseMessage.includes('api_key_invalid') || 
           lowerCaseMessage.includes('requested entity was not found')) {
-          userMessage = "Din API-nøgle er ugyldig eller har ikke de nødvendige tilladelser. Vælg venligst en gyldig nøgle.";
+          userMessage = "API-nøglen er ugyldig eller mangler. Applikationens administrator skal konfigurere en gyldig nøgle.";
       } else if (lowerCaseMessage.includes('blocked')) {
           userMessage = `Anmodningen blev blokeret. Årsag: ${lastError.message}`;
       } else if (lowerCaseMessage.includes('overloaded') || lowerCaseMessage.includes('unavailable') || lowerCaseMessage.includes('503')) {
