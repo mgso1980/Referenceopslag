@@ -9,6 +9,10 @@ async function sleep(ms: number) {
 }
 
 export async function generateSourceSummary(citation: string): Promise<SourceSummary> {
+  if (!process.env.API_KEY) {
+    throw new Error("API-nøglen er ugyldig eller mangler. Applikationens administrator skal konfigurere en gyldig nøgle.");
+  }
+  
   let lastError: Error | null = null;
 
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
