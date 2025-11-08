@@ -232,7 +232,7 @@ const App: React.FC = () => {
                             errorMessage.includes('api-nøglen er ugyldig eller mangler');
 
       if (isApiKeyError) {
-          setApiKeyError("Den valgte API-nøgle er ugyldig eller mangler. Vælg venligst en anden.");
+          setApiKeyError("Den valgte API-nøgle kunne ikke bruges. Dette skyldes ofte, at fakturering ikke er aktiveret for projektet, hvilket er et krav for Google Search-funktionen. Vælg venligst en nøgle fra et projekt med fakturering aktiveret.");
           setApiKeyStatus('needed');
           setIsLoading(false);
           return;
