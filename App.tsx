@@ -138,7 +138,7 @@ const SelectApiKeyView: React.FC<{ onSelectKey: () => void; error: string | null
                 <p className="text-red-500 dark:text-red-400 text-sm mb-4" role="alert">{error}</p>
             )}
             <p className="text-slate-600 dark:text-slate-400 mb-6">
-                For at bruge denne applikation skal du vælge en Gemini API-nøgle. Funktioner som Google Search-grounding kan kræve, at fakturering er aktiveret for dit projekt.
+                Denne applikation bruger Google Search til at finde kilder, hvilket kræver, at fakturering er aktiveret for dit Google Cloud-projekt. Vælg venligst en API-nøgle fra et projekt, hvor fakturering er slået til.
             </p>
             <div className="flex flex-col items-center space-y-4">
                  <button
