@@ -134,19 +134,22 @@ const SelectApiKeyView: React.FC<{ onSelectKey: () => void; error: string | null
         <div className="text-center p-8 max-w-lg mx-auto bg-white dark:bg-slate-800 rounded-lg shadow-xl ring-1 ring-slate-900/5 m-4">
             <KeyIcon className="mx-auto h-12 w-12 text-slate-400 mb-4" />
             <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Vælg en API-nøgle</h2>
-            {error && (
-                <p className="text-red-500 dark:text-red-400 text-sm mb-4" role="alert">{error}</p>
+            
+            {error ? (
+                 <p className="text-red-500 dark:text-red-400 text-base mb-6" role="alert">{error}</p>
+            ) : (
+                <p className="text-slate-600 dark:text-slate-400 mb-6">
+                    For at bruge denne app skal du vælge en API-nøgle fra et Google Cloud-projekt, hvor fakturering er aktiveret. Dette er et krav for at kunne slå kilder op med Google Search.
+                </p>
             )}
-            <p className="text-slate-600 dark:text-slate-400 mb-6">
-                Denne applikation bruger Google Search til at finde kilder, hvilket kræver, at fakturering er aktiveret for dit Google Cloud-projekt. Vælg venligst en API-nøgle fra et projekt, hvor fakturering er slået til.
-            </p>
+
             <div className="flex flex-col items-center space-y-4">
                  <button
                     onClick={onSelectKey}
                     className="w-full bg-sky-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 transition-colors"
-                    aria-label="Vælg API-nøgle"
+                    aria-label={error ? "Vælg en anden API-nøgle" : "Vælg API-nøgle"}
                 >
-                    Vælg API-nøgle
+                    {error ? "Vælg en anden API-nøgle" : "Vælg API-nøgle"}
                 </button>
                 <a
                     href="https://ai.google.dev/gemini-api/docs/billing"
@@ -232,7 +235,7 @@ const App: React.FC = () => {
                             errorMessage.includes('api-nøglen er ugyldig eller mangler');
 
       if (isApiKeyError) {
-          setApiKeyError("Den valgte API-nøgle kunne ikke bruges. Dette skyldes ofte, at fakturering ikke er aktiveret for projektet, hvilket er et krav for Google Search-funktionen. Vælg venligst en nøgle fra et projekt med fakturering aktiveret.");
+          setApiKeyError("Den valgte API-nøgle virker ikke. Det er sandsynligvis fordi, fakturering ikke er slået til for projektet. Denne app kræver fakturering for at bruge Google Search. Vælg venligst en anden nøgle.");
           setApiKeyStatus('needed');
           setIsLoading(false);
           return;
