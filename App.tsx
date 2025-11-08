@@ -1,8 +1,9 @@
-import React, { useState, useCallback, useMemo } from 'react';
+
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { generateSourceSummary } from './services/geminiService';
 import { INITIAL_SOURCES } from './constants';
 import { Source, SourceSummary } from './types';
-import { BookIcon, LoaderIcon, ErrorIcon, InfoIcon, BrainCircuitIcon } from './components/icons';
+import { BookIcon, LoaderIcon, ErrorIcon, InfoIcon, BrainCircuitIcon, KeyIcon } from './components/icons';
 
 const SourceListItem: React.FC<{ source: Source; onSelect: () => void; isSelected: boolean }> = ({ source, onSelect, isSelected }) => (
   <li
@@ -128,13 +129,79 @@ const WelcomeMessage: React.FC = () => (
     </div>
 );
 
+const SelectApiKeyView: React.FC<{ onSelectKey: () => void; error: string | null }> = ({ onSelectKey, error }) => (
+    <div className="flex items-center justify-center h-screen">
+        <div className="text-center p-8 max-w-lg mx-auto bg-white dark:bg-slate-800 rounded-lg shadow-xl ring-1 ring-slate-900/5 m-4">
+            <KeyIcon className="mx-auto h-12 w-12 text-slate-400 mb-4" />
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Vælg en API-nøgle</h2>
+            {error && (
+                <p className="text-red-500 dark:text-red-400 text-sm mb-4" role="alert">{error}</p>
+            )}
+            <p className="text-slate-600 dark:text-slate-400 mb-6">
+                For at bruge denne applikation skal du vælge en Gemini API-nøgle. Funktioner som Google Search-grounding kan kræve, at fakturering er aktiveret for dit projekt.
+            </p>
+            <div className="flex flex-col items-center space-y-4">
+                 <button
+                    onClick={onSelectKey}
+                    className="w-full bg-sky-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500 transition-colors"
+                    aria-label="Vælg API-nøgle"
+                >
+                    Vælg API-nøgle
+                </button>
+                <a
+                    href="https://ai.google.dev/gemini-api/docs/billing"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-sky-600 dark:text-sky-400 hover:underline"
+                >
+                    Lær mere om fakturering
+                </a>
+            </div>
+        </div>
+    </div>
+);
+
+
 const App: React.FC = () => {
+  type ApiKeyStatus = 'checking' | 'ready' | 'needed';
+  const [apiKeyStatus, setApiKeyStatus] = useState<ApiKeyStatus>('checking');
+  const [apiKeyError, setApiKeyError] = useState<string | null>(null);
+
   const [sources, setSources] = useState<Source[]>(INITIAL_SOURCES);
   const [selectedSourceId, setSelectedSourceId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   
   const selectedSource = useMemo(() => sources.find(s => s.id === selectedSourceId) || null, [sources, selectedSourceId]);
+
+  useEffect(() => {
+    const checkApiKey = async () => {
+      // @ts-ignore - aistudio is a global provided by the platform
+      if (window.aistudio && typeof window.aistudio.hasSelectedApiKey === 'function') {
+          // @ts-ignore
+          if (await window.aistudio.hasSelectedApiKey()) {
+            setApiKeyStatus('ready');
+          } else {
+            setApiKeyStatus('needed');
+          }
+      } else {
+        console.warn("AI Studio context not found, assuming API key is in environment.");
+        setApiKeyStatus('ready'); // Fallback for local development
+      }
+    };
+    checkApiKey();
+  }, []);
+
+  const handleSelectKey = async () => {
+    setApiKeyError(null); // Clear previous errors
+    try {
+      // @ts-ignore
+      await window.aistudio.openSelectKey();
+      setApiKeyStatus('ready');
+    } catch (error) {
+      console.error("Error opening API key selection:", error);
+    }
+  };
 
   const handleSourceSelect = useCallback(async (id: number) => {
     if (selectedSourceId === id || isLoading) {
@@ -145,10 +212,7 @@ const App: React.FC = () => {
     setError(null);
 
     const sourceToUpdate = sources.find(s => s.id === id);
-    if (!sourceToUpdate) return;
-
-    // If summary already exists, do not re-fetch.
-    if (sourceToUpdate.summary) {
+    if (!sourceToUpdate || sourceToUpdate.summary) {
       return;
     }
     
@@ -161,12 +225,45 @@ const App: React.FC = () => {
         )
       );
     } catch (e: any) {
-      const errorMessage = e.message || 'An unknown error occurred.';
-      setError(errorMessage);
+      const errorMessage = e.message?.toLowerCase() || 'en ukendt fejl opstod.';
+      
+      const isApiKeyError = errorMessage.includes('requested entity was not found') ||
+                            errorMessage.includes('api key not valid') ||
+                            errorMessage.includes('api-nøglen er ugyldig eller mangler');
+
+      if (isApiKeyError) {
+          setApiKeyError("Den valgte API-nøgle er ugyldig eller mangler. Vælg venligst en anden.");
+          setApiKeyStatus('needed');
+          setIsLoading(false);
+          return;
+      }
+
+      let userFriendlyMessage = "Der opstod en teknisk fejl under generering af resumé. Prøv venligst igen.";
+      if (errorMessage.includes('blocked')) {
+        userFriendlyMessage = `Anmodningen blev blokeret af sikkerhedshensyn.`;
+      } else if (errorMessage.includes('overloaded') || errorMessage.includes('unavailable') || errorMessage.includes('503')) {
+        userFriendlyMessage = "AI-modellen er i øjeblikket overbelastet. Vent et øjeblik, og prøv venligst igen.";
+      } else if (errorMessage.includes('quota') || errorMessage.includes('429') || errorMessage.includes('resource_exhausted')) {
+        userFriendlyMessage = "Anmodningsgrænsen for API-nøglen er nået. Vent venligst, og prøv igen.";
+      }
+
+      setError(userFriendlyMessage);
     } finally {
       setIsLoading(false);
     }
   }, [selectedSourceId, isLoading, sources]);
+  
+  if (apiKeyStatus === 'checking') {
+    return (
+        <div className="flex items-center justify-center h-screen bg-slate-50 dark:bg-slate-900">
+            <LoaderIcon className="h-12 w-12 animate-spin text-slate-500" />
+        </div>
+    );
+  }
+
+  if (apiKeyStatus === 'needed') {
+      return <SelectApiKeyView onSelectKey={handleSelectKey} error={apiKeyError} />;
+  }
 
   return (
     <main className="h-screen w-screen overflow-hidden antialiased text-slate-800 dark:text-slate-200">
@@ -179,19 +276,18 @@ const App: React.FC = () => {
                 <nav className="flex-1">
                   <ul className="divide-y divide-slate-200 dark:divide-slate-700" role="listbox" aria-label="Academic Sources">
                     {sources.map(source => (
-                        <SourceListItem
-                          key={source.id}
-                          source={source}
-                          isSelected={selectedSourceId === source.id}
-                          onSelect={() => handleSourceSelect(source.id)}
-                        />
+                      <SourceListItem
+                        key={source.id}
+                        source={source}
+                        onSelect={() => handleSourceSelect(source.id)}
+                        isSelected={selectedSourceId === source.id}
+                      />
                     ))}
                   </ul>
                 </nav>
             </div>
-
-            {/* Right Panel: Details/Content */}
-            <div className="w-full md:w-2/3 lg:w-3/5 overflow-y-auto relative">
+            {/* Right Panel: Content */}
+            <div className="w-full md:w-2/3 lg:w-3/5 overflow-y-auto">
                 {selectedSource ? (
                     <SourceDetail source={selectedSource} isLoading={isLoading} error={error} />
                 ) : (

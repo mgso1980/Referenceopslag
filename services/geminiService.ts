@@ -1,3 +1,4 @@
+
 import { GoogleGenAI } from "@google/genai";
 import { SourceSummary, GroundingSource } from '../types';
 
@@ -9,7 +10,6 @@ async function sleep(ms: number) {
 }
 
 export async function generateSourceSummary(citation: string): Promise<SourceSummary> {
-  // Perform a strict check for the API key at the very beginning.
   if (!process.env.API_KEY || process.env.API_KEY.trim() === '') {
     throw new Error("API-nøglen er ugyldig eller mangler. Applikationens administrator skal konfigurere en gyldig nøgle.");
   }
@@ -66,7 +66,6 @@ Kilde: "${citation}"`;
           };
       }
 
-      // Success, return and exit the loop
       return {
           rawResponse,
           groundingSources,
@@ -76,7 +75,6 @@ Kilde: "${citation}"`;
       lastError = error;
       const errorMessage = error.message?.toLowerCase() || '';
 
-      // Check for retryable errors.
       const isOverloaded = errorMessage.includes('overloaded') || errorMessage.includes('unavailable') || errorMessage.includes('503');
       const isRateLimited = errorMessage.includes('quota') || errorMessage.includes('429') || errorMessage.includes('resource_exhausted');
 
@@ -86,47 +84,29 @@ Kilde: "${citation}"`;
 
         if (isRateLimited) {
             reason = "rate limiting";
-            // Use original error message for regex to preserve case
             const retryMatch = error.message.match(/Please retry in ([\d\.]+)s/);
             if (retryMatch && retryMatch[1]) {
-                // Use suggested delay from API + random jitter
                 backoffTime = parseFloat(retryMatch[1]) * 1000 + (Math.random() * 500);
             } else {
-                 // Fallback if regex fails, though unlikely
                 backoffTime = (INITIAL_BACKOFF_MS * Math.pow(2, attempt)) + (Math.random() * 1000);
             }
-        } else { // isOverloaded
+        } else {
             reason = "model overload";
-            // Exponential backoff with jitter
             backoffTime = (INITIAL_BACKOFF_MS * Math.pow(2, attempt)) + (Math.random() * 1000);
         }
         
         console.log(`Attempt ${attempt + 1} failed due to ${reason}. Retrying in ${Math.round(backoffTime)}ms...`);
         await sleep(backoffTime);
-        continue; // Try again
+        continue;
       }
       
-      // If it's not a retryable error or the last attempt, break the loop.
       break;
     }
   }
 
-  // If we exit the loop, it means all retries failed.
-  console.error(`Fatal error generating summary for citation: "${citation}" after ${MAX_RETRIES} attempts`, lastError);
-    
-  let userMessage = "Der opstod en teknisk fejl under generering af resumé. Prøv venligst igen.";
-      
-  if (lastError instanceof Error) {
-      const lowerCaseMessage = lastError.message.toLowerCase();
-      // NOTE: API key errors are now handled by the initial check at the top of the function.
-      if (lowerCaseMessage.includes('blocked')) {
-          userMessage = `Anmodningen blev blokeret. Årsag: ${lastError.message}`;
-      } else if (lowerCaseMessage.includes('overloaded') || lowerCaseMessage.includes('unavailable') || lowerCaseMessage.includes('503')) {
-          userMessage = "AI-modellen er i øjeblikket overbelastet. Vent et øjeblik, og prøv venligst igen.";
-      } else if (lowerCaseMessage.includes('quota') || lowerCaseMessage.includes('429') || lowerCaseMessage.includes('resource_exhausted')) {
-          userMessage = "Du har ramt anmodningsgrænsen for din API-nøgle (typisk for gratis versioner). Vent venligst et minut, og prøv igen.";
-      }
+  if (lastError) {
+    throw lastError;
   }
-      
-  throw new Error(userMessage);
+    
+  throw new Error("Der opstod en uventet fejl under generering af resumé.");
 }
