@@ -2,8 +2,7 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { INITIAL_SOURCES } from './constants';
 import { Source } from './types';
-import { BookIcon, InfoIcon, BrainCircuitIcon, PlusIcon, PenIcon, SparklesIcon } from './components/icons';
-import { generateExpandedSummary } from './services/geminiService';
+import { BookIcon, InfoIcon, BrainCircuitIcon, PlusIcon, PenIcon } from './components/icons';
 
 const SourceListItem: React.FC<{ source: Source; onSelect: () => void; isSelected: boolean }> = ({ source, onSelect, isSelected }) => (
   <li
@@ -59,19 +58,7 @@ const SimpleMarkdownRenderer: React.FC<{ content: string }> = ({ content }) => {
 const SourceDetail: React.FC<{ 
     source: Source; 
     onUpdateNotes: (notes: string) => void;
-    onGenerateSummary: (citation: string) => Promise<void>;
-}> = ({ source, onUpdateNotes, onGenerateSummary }) => {
-  const [isGenerating, setIsGenerating] = useState(false);
-
-  const handleGenerateClick = async () => {
-    setIsGenerating(true);
-    try {
-        await onGenerateSummary(source.citation);
-    } finally {
-        setIsGenerating(false);
-    }
-  };
-
+}> = ({ source, onUpdateNotes }) => {
   return (
     <div className="p-6 sm:p-8 h-full flex flex-col">
       <div className="mb-6 pb-4 border-b border-slate-200 dark:border-slate-700">
@@ -94,32 +81,8 @@ const SourceDetail: React.FC<{
               ) : (
                  <div className="flex flex-col items-center justify-center text-center p-8 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-700 text-slate-500 dark:text-slate-400">
                     <InfoIcon className="h-10 w-10 mb-3 text-slate-400 dark:text-slate-500" />
-                    <h3 className="font-semibold text-base mb-2">Resumé Ikke Tilgængeligt</h3>
-                    <p className="text-sm mb-6 max-w-xs mx-auto">Der er endnu ikke tilføjet et automatisk resumé for denne kilde. Klik nedenfor for at lade AI generere et.</p>
-                    <button 
-                        onClick={handleGenerateClick}
-                        disabled={isGenerating}
-                        className={`flex items-center px-4 py-2 rounded-md text-white text-sm font-medium transition-colors ${
-                            isGenerating 
-                            ? 'bg-slate-400 cursor-not-allowed' 
-                            : 'bg-sky-600 hover:bg-sky-700 shadow-sm'
-                        }`}
-                    >
-                        {isGenerating ? (
-                            <>
-                                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                Genererer Resumé...
-                            </>
-                        ) : (
-                            <>
-                                <SparklesIcon className="w-4 h-4 mr-2" />
-                                Generer AI Resumé
-                            </>
-                        )}
-                    </button>
+                    <h3 className="font-semibold text-base mb-2">Intet resumé tilgængeligt</h3>
+                    <p className="text-sm max-w-xs mx-auto">Denne kilde er tilføjet manuelt og har ikke et forudskrevet resumé. Du kan bruge notefeltet nedenfor til dine egne optegnelser.</p>
                  </div>
               )}
           </section>
@@ -212,12 +175,24 @@ const WelcomeMessage: React.FC<{ onAddSource: () => void }> = ({ onAddSource }) 
 );
 
 const App: React.FC = () => {
-  // Initialize state from local storage or default constants
+  // Initialize state from local storage or default constants, merging new code updates
   const [sources, setSources] = useState<Source[]>(() => {
       try {
           const savedData = localStorage.getItem('academic-source-catalog-data');
           if (savedData) {
-              return JSON.parse(savedData);
+              const parsedData: Source[] = JSON.parse(savedData);
+              
+              // Create a set of IDs that exist in the saved data
+              const savedIds = new Set(parsedData.map(s => s.id));
+              
+              // Find sources in INITIAL_SOURCES that are NOT in savedData (newly added by developer)
+              const newSources = INITIAL_SOURCES.filter(s => !savedIds.has(s.id));
+              
+              // Merge: Keep user's saved data (with notes), append new sources from code
+              const mergedSources = [...parsedData, ...newSources];
+              
+              // Sort by ID to keep order
+              return mergedSources.sort((a, b) => a.id - b.id);
           }
       } catch (e) {
           console.error("Failed to load from local storage", e);
@@ -266,22 +241,6 @@ const App: React.FC = () => {
       });
   }, []);
 
-  const handleGenerateSummary = useCallback(async (citation: string) => {
-    if (!selectedSourceId) return;
-    
-    try {
-        const summary = await generateExpandedSummary(citation);
-        setSources(prev => 
-            prev.map(s => 
-                s.id === selectedSourceId ? { ...s, summary } : s
-            )
-        );
-    } catch (error) {
-        console.error("Failed to generate summary:", error);
-        alert("Der opstod en fejl under generering af resuméet. Kontroller din internetforbindelse og API-nøgle.");
-    }
-  }, [selectedSourceId]);
-
   return (
     <main className="h-screen w-screen overflow-hidden antialiased text-slate-800 dark:text-slate-200">
         <div className="flex flex-col md:flex-row h-[calc(100vh-2rem)] bg-white dark:bg-slate-800 shadow-xl ring-1 ring-slate-900/5 rounded-lg m-4">
@@ -320,7 +279,6 @@ const App: React.FC = () => {
                     <SourceDetail 
                         source={selectedSource} 
                         onUpdateNotes={handleUpdateNotes}
-                        onGenerateSummary={handleGenerateSummary}
                     />
                 ) : (
                     <WelcomeMessage onAddSource={() => setIsAddModalOpen(true)} />
