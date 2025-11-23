@@ -119,22 +119,25 @@ Bogen er en dybdegående udforskning af Community of Inquiry (CoI) frameworket, 
     id: 7, 
     citation: "Harasim, L. M. (2017). Learning theory and online technologies (Second edition). Routledge, Taylor & Francis Group. https://doi.org/10.4324/9781315716831",
     summary: `### Overordnet Resumé
-Harasim præsenterer og udvikler sin teori om Online Collaborative Learning (OCL). Bogen gennemgår klassiske læringsteorier og argumenterer for, at online teknologier muliggør en ny form for læring baseret på diskurs, samarbejde og videnskonstruktion i netværk.
+Linda Harasims bog er et centralt værk inden for online læring, hvor hun præsenterer sin teori om Online Collaborative Learning (OCL). Teorien er en videreudvikling af socialkonstruktivistiske ideer, anvendt specifikt på de muligheder, som netværksbaserede teknologier skaber. Harasim argumenterer for, at internettet ikke blot er et værktøj til informationsdistribution, men et rum for aktiv, kollaborativ videnskonstruktion. Bogen positionerer OCL som den tredje generation af pædagogisk praksis, efter traditionel undervisning (første generation) og computer-assisteret instruktion (anden generation).
 
 ### Centrale Teorier
-- **Online Collaborative Learning (OCL):** En pædagogisk teori, der understreger, at læring er en social proces, hvor viden skabes i fællesskab gennem diskussion og samarbejde faciliteret af internetteknologier.
-- **Connectivism (som reference):** OCL deler ideer med connectivism, men med et stærkere fokus på den pædagogiske rammesætning og facilitering fra underviseren.
+- **Online Collaborative Learning (OCL):** Kernen er, at læring er en social proces, hvor viden ikke overføres fra lærer til studerende, men skabes i fællesskab ('co-constructed') gennem diskurs og samarbejde. Teknologien muliggør et fællesskab, hvor deltagerne er aktive 'knowledge builders'.
+- **Discourse as the Engine of Learning:** Harasim lægger afgørende vægt på den skrevne, asynkrone diskussion. Den giver mulighed for dybere refleksion, da deltagerne kan formulere deres tanker omhyggeligt. Dette fremmer en mere nuanceret og argumenteret dialog end i en traditionel, mundtlig klassesamtale.
 
 ### Vigtigste Pointer
-- Lærerens rolle skifter fra "sage on the stage" til "guide on the side" eller facilitator.
-- Fokus er på processen med vidensbygning frem for blot at tilegne sig eksisterende viden.
-- Asynkron online diskussion giver tid til refleksion og dybere, mere velovervejede bidrag fra studerende.
+- **Fra videnstilegnelse til vidensbygning:** Fokus flyttes radikalt fra den enkelte studerendes memorering af fakta til gruppens fælles proces med at bygge ny viden. Læringens mål er ikke et korrekt svar, men en dybere, fælles forståelse.
+- **Lærerens rolle som facilitator:** Læreren er ikke længere den primære videnskilde ('sage on the stage'). I OCL er lærerens opgave at designe læringsaktiviteter, facilitere diskussionen ved at stille uddybende spørgsmål, skabe syntese og sikre et produktivt læringsklima ('guide on the side').
+- **Vigtigheden af asynkronicitet:** Den asynkrone kommunikation (fx i et diskussionsforum) er en pædagogisk styrke. Den giver lige muligheder for deltagelse, uanset personlighedstype (introvert/ekstrovert) og giver tid til at finde kilder og formulere velstrukturerede argumenter.
 
 ### Modeller
-- **OCL-model:** Harasim beskriver en tre-trins proces for videnskonstruktion i online diskussioner:
-  1.  **Idé-generering:** Brainstorming og deling af forskellige synspunkter.
-  2.  **Idé-organisering:** Gruppering, sammenligning og diskussion af de forskellige idéer.
-  3.  **Intellektuel konvergens:** Syntese og samskabelse af en ny, fælles forståelse eller et produkt.`
+- **OCL-model for videnskonstruktion:** Harasims model beskriver en progressiv proces for, hvordan en gruppe bevæger sig fra individuelle ideer til fælles viden gennem diskurs. Processen består af tre faser:
+  1.  **Idé-generering (Idea Generating):** Den indledende fase, hvor deltagerne brainstormer, deler forskellige synspunkter og indledende tanker om et emne. Diversitet i perspektiver er afgørende her.
+  2.  **Idé-organisering (Idea Organizing):** Deltagerne begynder at sammenligne, gruppere og forhandle om de fremsatte ideer. De leder efter mønstre, uenigheder og sammenhænge. Dette er den centrale diskursive fase, hvor argumenter udvikles.
+  3.  **Intellektuel konvergens (Intellectual Convergence):** Målet er at nå en form for syntese, en fælles forståelse eller et fælles produkt (fx en rapport, en løsning). Dette inkluderer også anerkendelse af, hvor man er uenig. Det er kulminationen på den kollaborative proces.
+
+### Praktiske Implikationer & Kritik
+OCL-teorien har haft stor indflydelse på design af online kurser, især inden for problem- og projektbaseret læring. En potentiel kritik er, at modellen kan være tidskrævende for både studerende og facilitatorer. Den kræver også høj grad af selvdisciplin og motivation fra deltagerne, og succes afhænger stærkt af facilitatorens evne til at guide processen uden at dominere den.`
   },
   { 
     id: 8, 
